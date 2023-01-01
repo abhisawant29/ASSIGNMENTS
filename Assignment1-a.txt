@@ -1,0 +1,20 @@
+assignment:1-a 
+
+gameoflife project run on jenkins master and deployed on slave using pipeline.
+
+pipeline{
+    agent {
+        label{
+            label 'QA'
+            customWorkspace '/mnt/jenkins-slave'
+        }}
+      stages{
+          stage('copy from git'){
+              steps{
+                 sh " git clone https://s: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@github.com/abhisawant29/scm.git"
+              }   }
+          stage('copy warfile to web apps'){
+              steps{
+                  sh "cp -r /mnt/jenkins-slave/scm/gameoflife.war /mnt/servers/apache-tomcat-9.0.70/webapps/"
+              }}}}
+         

@@ -1,0 +1,62 @@
+Assignment 1-b:
+
+Deployed master branch on jenkins server and dev branch on slave1,qa brach on slave 2
+pipeline{
+    agent{
+        label{
+            label 'built-in'
+            customWorkspace '/mnt/data'
+        }
+    }
+              stages{
+                  stage('stage-1'){
+                      steps{
+                          sh "git init"
+                          sh "git clone https://github.com/abhisawant29/test.git"
+                          sh "cd /mnt/data/test"
+                          sh "cp /mnt/data/test/index.html /var/www/html"
+                          sh "sudo service httpd start"
+                          sh "sudo chmod 777 /var/www/html/index.html"
+                      }
+                  }
+                  stage('on QA'){
+                      agent{
+                          label{
+                              label 'QA'
+                              customWorkspace '/mnt/data'
+                          }
+                      }
+                    steps{
+                          sh "git init"
+                          sh "git clone https://github.com/abhisawant29/test.git -b dev"
+                          sh "cd /mnt/data/test"
+                          sh "cp /mnt/data/test/index.html /var/www/html"
+                          sh "sudo service httpd start"
+                          sh "sudo chmod 777 /var/www/html/index.html"
+                      }
+                  
+                      
+                  }
+                                    stage('on QA2'){
+                      agent{
+                          label{
+                              label 'QA2'
+                              customWorkspace '/mnt/data'
+                          }
+                      }
+                    steps{
+                          sh "git init"
+                          sh "git clone https://github.com/abhisawant29/test.git -b qa"
+                          sh "cd /mnt/data/test"
+                          sh "cp /mnt/data/test/index.html /var/www/html"
+                          sh "sudo service httpd start"
+                          sh "sudo chmod 777 /var/www/html/index.html"
+
+              }
+              
+    
+}
+}
+}
+
+
