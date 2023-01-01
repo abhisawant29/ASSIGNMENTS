@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: root
+Build-Jdk: 1.8.0_342
+Implementation-Version: 
+Specification-Title: gameoflife-web
+Specification-Version: 1.0-SNAPSHOT
+
