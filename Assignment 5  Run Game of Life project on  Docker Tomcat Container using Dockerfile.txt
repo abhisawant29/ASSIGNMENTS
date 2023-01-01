@@ -1,0 +1,97 @@
+Launch EC2 Instance
+UserData Script --
+
+#!/bin/bash
+sudo su
+yum install java-1.8.0-openjdk-devel.x86_64 -y
+yum install git -y
+cd /mnt
+mkdir servers 
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.70/bin/apache-tomcat-9.0.70.zip
+unzip apache-tomcat-9.0.70.zip
+rm -rf apache-tomcat-9.0.70.zip
+chmod -R 777 apache-tomcat-9.0.70
+mv apache-tomcat-9.0.70  servers
+cd servers/apache-tomcat-9.0.70/webapps
+wget https://get.jenkins.io/war-stable/2.346.3/jenkins.war
+cd /mnt/servers/apache-tomcat-9.0.70/bin
+./startup.sh
+
+.................Jenkins Started...............Access URL : ipaddress:8080/jenkins
+copy administartor password :  /root/.jenkins/secrets/initialAdminPassword
+
+EC2 cd /mnt
+mkdir build-tools
+cd build-tools
+wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip
+unzip apache-maven-3.8.6-bin.zip
+rm -rf apache-maven-3.8.6-bin.zip
+chmod -R 777 apache-maven-3.8.6
+
+cd /mnt
+mkdir projects
+cd projects
+git init
+git clone https://github.com/VisionInfotech5/game-of-life.git
+
+
+edit bash profile
+vi .bash_profile
+
+PATH=$PATH:$HOME/bin
+export MAVEN_HOME=/mnt/build-tools/apache-maven-3.8.6
+export PATH=$MAVEN_HOME/bin:$PATH
+
+logout
+sudo su - root
+cd /mnt/projects/game-of-life
+mvn install
+
+cp /mnt/projects/game-of-life/gameoflife-web/target/gameoflife.war /mnt
+cd /mnt
+chmod 777 gameoflife.war
+git init
+git add gameoflife.war
+git commit -m "commiting war file"
+git remote add origin https://github.com/VisionInfotech5/gameoflife.git
+git push origin master
+Username for 'https://github.com': suru
+Password for 'https://suru@github.com':  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
+
+Create Docker file on GitHub
+
+ Dockerfile
+
+FROM tomcat:9.0.70-jdk8-corretto-al2
+EXPOSE 8080
+
+Launch Slave  EC2 Instance :
+
+Build Jenkins Job
+
+pipeline{
+    agent{
+        label{
+            label 'QA'
+            customWorkspace "/mnt"
+        }
+    }
+    stages{
+        stage('Run Dockerfile'){
+            steps{
+                sh " sudo yum install git -y"
+                sh"sudo yum install docker -y"
+                sh "sudo systemctl start docker"
+                sh "sudo git init"
+                sh "sudo git clone https://github.com/VisionInfotech5/Docker-HTTPD.git"
+                sh "sudo docker build -t test:1.0 /mnt/jenkins-slave/Docker-HTTPD/"
+                sh "sudo chmod 777 Docker-HTTPD/gameoflife.war"
+                sh "sudo docker run -itdp 8080:8080 -v /mnt/jenkins-slave/Docker-HTTPD:/usr/local/tomcat/webapps --name suraj test:1.0"
+            }
+        }
+    }
+}
+
+
+Extra
+docker run -itdp 8080:8080 -v /mnt:/usr/local/tomcat/webapps/ --name test tomcat:9.0.70-jdk8-corretto-al2

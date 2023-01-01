@@ -1,0 +1,53 @@
+Title : creating and attaching volume to httpd on master and slave -- port 80  90  8080
+
+On Jenkins Slave 
+
+Install docker , java , git , start docker , git init 
+chmod -R 777 /mnt
+customWorkspace /mnt/jenkins-slave
+
+Script: 
+
+pipeline{
+    agent{
+        label{
+            label 'built-in'
+            customWorkspace "/mnt"
+        }
+    }
+    stages{
+        stage('22Q1 on container-1'){
+            steps{
+               sh "git clone https://github.com/VisionInfotech5/Velocity.git 22Q1"
+               sh "docker volume create volume-1"
+               sh "cp 22Q1/index.html /var/lib/docker/volumes/volume-1/_data"
+               sh "chmod 777 /var/lib/docker/volumes/volume-1/_data/index.html"
+               sh "docker run -itdp 80:80 -v volume-1:/usr/local/apache2/htdocs --name test-1 httpd"
+            }
+        }
+        stage('22Q2 on container-2'){
+            steps{
+               sh "git clone https://github.com/VisionInfotech5/Velocity.git -b 22Q2 22Q2"
+               sh "docker volume create volume-2"
+               sh "cp 22Q2/index.html /var/lib/docker/volumes/volume-2/_data"
+               sh "chmod 777 /var/lib/docker/volumes/volume-2/_data/index.html"
+               sh "docker run -itdp 90:80 -v volume-2:/usr/local/apache2/htdocs --name test-2 httpd"
+    }
+}
+stage('22Q3 on conatainer-3'){
+    agent{
+        label{
+            label 'QA'
+            customWorkspace "/mnt/jenkins-slave"
+        }
+    }
+     steps{
+               sh "sudo git clone https://github.com/VisionInfotech5/Velocity.git -b 22Q3 22Q3"
+               sh "sudo docker volume create volume-3"
+               sh "sudo cp 22Q3/index.html /var/lib/docker/volumes/volume-3/_data"
+               sh "sudo chmod 777 /var/lib/docker/volumes/volume-3/_data/index.html"
+               sh "sudo docker run -itdp 8080:80 -v volume-3:/usr/local/apache2/htdocs --name test-3 httpd"
+     }
+}
+}
+}
