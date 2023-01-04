@@ -1,0 +1,75 @@
+
+Assignment:  deploy gameoflife on tomcat using docker-compose.yml
+
+on master:
+
+cd /mnt
+mkdir Deployment
+cd Deployment
+vi docker-compose.yml
+version: '3'
+services:
+  tomcat:
+    image: 'tomcat:9'
+    ports:
+      - '8080:8080'
+      - '8090:8080'
+    volumes:
+      - "/mnt/jenkins-slave:/usr/local/tomcat/webapps"
+
+
+git add Deployment
+git commit -m "1st commit"
+git push origin master
+
+pipeline{
+    agent{
+        label{
+            label '172.31.22.123'
+            customWorkspace '/mnt/jenkins-slave'
+        }
+    }
+      stages{
+          stage('on slave 1'){
+              steps{
+              sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+              sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+              sh "sudo curl -SL https://github.com/docker/compose/releases/download/v2.11.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose"
+               sh "sudo chmod +x /usr/local/bin/docker-compose" 
+              sh "sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose"
+              sh "sudo chmod +x /usr/bin/docker-compose"
+              sh "sudo yum install git -y"
+              sh "sudo git init"
+              sh "sudo git clone https://abhi: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@github.com/abhisawant29/Dockertomcat.git"
+              sh "sudo git clone https://abhi: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@github.com/abhisawant29/Deployment.git"
+              sh "sudo cp /mnt/jenkins-slave/Dockertomcat/gameoflife.war /mnt/jenkins-slave/"
+              sh "sudo mv /mnt/jenkins-slave/Deployment/docker-compose.yml /mnt/jenkins-slave/"
+              sh "sudo chmod -R 777 /mnt"
+              sh "sudo docker-compose up -d"
+            }}
+               stage('on slave 2'){
+             agent{
+             label{
+                 label '172.31.16.194'
+                 customWorkspace '/mnt/jenkins-slave'
+             }}
+         steps{
+             sh "sudo yum install docker -y"
+              sh "sudo systemctl start docker"
+              sh "sudo curl -SL https://github.com/docker/compose/releases/download/v2.11.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose"
+               sh "sudo chmod +x /usr/local/bin/docker-compose" 
+              sh "sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose"
+              sh "sudo chmod +x /usr/bin/docker-compose"
+              sh "sudo yum install git -y"
+              sh "sudo git init"
+              sh "sudo git clone https://abhi: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@github.com/abhisawant29/Dockertomcat.git"
+              sh "sudo git clone https://abhi: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@github.com/abhisawant29/Deployment.git"
+              sh "sudo cp /mnt/jenkins-slave/Dockertomcat/gameoflife.war /mnt/jenkins-slave/"
+              sh "sudo mv /mnt/jenkins-slave/Deployment/docker-compose.yml /mnt/jenkins-slave/"
+              sh "sudo chmod -R 777 /mnt"
+              sh "sudo docker-compose up -d"
+             
+         }}}}
+           
