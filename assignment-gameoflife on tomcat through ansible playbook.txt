@@ -1,0 +1,68 @@
+
+ASSIGNMENT: gameoflife on tomcat through ansible playbook
+
+
+useradd abhi
+passwd abhi
+visudo abhi    ALL=(ALL)      NOPASSWD: ALL
+vi /etc/ssh/sshd_config
+permenent root enable
+pwd yes enable
+pwd no disable
+
+service sshd restart   ### perform till here on all...server and host
+
+sudo su - abhi
+ssh-keygen
+enter 3 times
+ssh-copy-id username@private ip of host
+
+sudo amazon-linux-extras install ansible2 -y
+sudo vi /etc/ansible/ansible.cfg
+enable inventry
+enable sudoers
+
+sudo vi /etc/ansible/hosts
+add hosts private ip 
+
+sudo vi target.yml
+
+--- #tagets
+
+- hosts: devlinux
+  user: abhi
+  become: yes
+  connection: ssh
+  gather_facts: yes
+
+
+  tasks:
+
+    - name: install java
+      action: yum name=java state=present
+
+    - name: install tomcat
+      action: yum name=tomcat state=present
+
+    - name: start tomcat
+      action: service name=tomcat state=started
+
+    - name: install git
+      action: yum name=git state=present
+
+    - name: git init
+      command: git init
+
+    - name: clone github repo
+      git:
+        repo: https://github.com/abhisawant29/scm.git
+        dest: /home/abhi/files/
+        clone: yes
+        update: yes
+
+    - name: deploy
+      action: copy src=/home/abhi/files/scm/gameoflife.war dest=/usr/share/tomcat/webapps
+
+~
+-- INSERT --                                                   
+run as ansible-playbook target.yml
