@@ -1,0 +1,72 @@
+1st job:
+click on build perodically
+H/10 * * * *
+pipeline{
+    agent {
+        label{
+            label "QA"
+            customWorkspace '/mnt'
+        }
+    }
+        stages{
+            stage('stopinstance'){
+                steps{
+                   
+                    sh "aws ec2 stop-instances --instance-ids i-0282a92cffb01fe98"
+                }
+    
+            }
+         }
+}
+
+2nd job
+click on post build
+enter 1st job name
+click on build periodically
+H/12 * * * *
+pipeline{
+    agent {
+        label{
+            label "built-in"
+            customWorkspace '/mnt'
+      }
+}    
+          stages{      
+          stage('start instance on master'){
+                
+                steps{
+                   
+                    sh "aws ec2 start-instances --instance-ids i-0282a92cffb01fe98"
+                }
+       
+        }
+}
+}
+
+************************************************************************************************
+pipeline{
+    agent {
+        label{
+            label "built-in"
+            customWorkspace '/mnt'
+        }
+    }
+        stages{
+            stage('stopinstance'){
+                steps{
+                   
+                    sh "aws ec2 stop-instances --instance-ids i-0282a92cffb01fe98"
+                }
+    
+            }
+            
+             stage('start instance on master'){
+                
+                steps{
+                   
+                    sh "aws ec2 start-instances --instance-ids i-0282a92cffb01fe98"
+                }
+       
+        }
+}
+}
